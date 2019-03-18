@@ -726,7 +726,6 @@ class WX_Custom_Share
                 var url = '<?php echo rest_url('/wx_custom_share/share_info') ?>';
                 var signature_url = window.location.href.split('#')[0];
                 var formData = {
-                    action: 'wxcs_get_share_info',
                     type: '<?php echo $type ?>',
                     id: <?php echo $object_id ?>,
                     signature_url: signature_url
