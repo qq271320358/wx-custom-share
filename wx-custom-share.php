@@ -814,14 +814,9 @@ class WX_Custom_Share
 
     function ajax_get_share_info()
     {
-        if ( !$this->is_from_wechat() ) {
-            return [];
-        }
-
         $settings = get_option('ws_settings');
 
         if (isset($_REQUEST['id']) && isset($_REQUEST['type']) && isset($_REQUEST['signature_url'])) {
-
             $object_id = $_REQUEST['id'];
             $type = $_REQUEST['type'];
             $signature_url = $_REQUEST['signature_url'];
@@ -841,7 +836,7 @@ class WX_Custom_Share
         $result['img'] = $img['display'];
         $result['use_actual_url'] = $is_use_actual_url;
 
-        if ($settings['ws_appid'] != '' && $settings['ws_appsecret'] != '') {
+        if ($this->is_from_wechat() && $settings['ws_appid'] != '' && $settings['ws_appsecret'] != '') {
 
             $jsapi_ticket = $this->get_jsapi_ticket();
             if ($this->is_api_error($jsapi_ticket)) {
