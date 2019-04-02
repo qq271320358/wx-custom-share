@@ -42,21 +42,21 @@ class WX_Custom_Share
 
         add_action('init', array($this, 'load_textdomain'));
     }
+
     //获取小图标
 
     function is_from_qq()
     {
-        return strpos($_SERVER['HTTP_USER_AGENT'], 'QQBrowser') !== false;
+        return isset($_SERVER['HTTP_USER_AGENT']) && strpos($_SERVER['HTTP_USER_AGENT'], 'QQBrowser') !== false;
     }
 
     function is_from_wechat()
     {
-        return strpos($_SERVER['HTTP_USER_AGENT'], 'MicroMessenger') !== false;
+        return isset($_SERVER['HTTP_USER_AGENT']) && strpos($_SERVER['HTTP_USER_AGENT'], 'MicroMessenger') !== false;
     }
 
     function setting_menu()
     {
-
         add_options_page(__('Wechat Share Settings', 'wx-custom-share'), __('Wechat Share', 'wx-custom-share'),
             'administrator', 'wxcs-settings', array($this, 'setting_html_page'));
     }
@@ -153,10 +153,10 @@ class WX_Custom_Share
 
     function home_setting_section_cb()
     {
-        ?>
-        <p class="description"><?php _e('Please go to edit page to set the share information if you choose a page as front page.',
-                'wx-custom-share') ?></p>
-        <?php
+        echo '<p class="description">' .
+            _e('Please go to edit page to set the share information if you choose a page as front page.',
+                'wx-custom-share') .
+            '</p>';
     }
 
     //生成随机字符串
@@ -430,33 +430,30 @@ class WX_Custom_Share
     {
 
         $settings = get_option('ws_settings');
-
         $blog_name = get_bloginfo('name');
 
-        //首页
-        if ($type == 'home') {
-            $home_title = isset($settings['ws_home_title']) && !empty($settings['ws_home_title']) ? $settings['ws_home_title'] : false;
-            $home_title = $home_title ? $home_title : get_option('blogname');
-            return array('display' => $home_title);
-        } else {
-            if ($type == 'post') {
+        switch ($type) {
+            case 'home':
+                $home_title = isset($settings['ws_home_title']) && !empty($settings['ws_home_title']) ? $settings['ws_home_title'] : false;
+                $home_title = $home_title ? $home_title : get_option('blogname');
+                return array('display' => $home_title);
+            case 'post':
                 $post = get_post($object_id);
-                $meta_info = get_post_meta($object_id, 'ws_info', true);
+                if (empty($post)) {
+                    return array('display' => '');
+                }
 
+                $meta_info = get_post_meta($object_id, 'ws_info', true);
                 $meta_title = isset($meta_info['ws_title']) ? $meta_info['ws_title'] : '';
                 $post_default_title = $post->post_title . ' - ' . $blog_name;
 
-                $info['display'] = $meta_title != '' ? $meta_title : $post_default_title;
-                $info['meta'] = $meta_title;
-                $info['default'] = $post_default_title;
-                return $info;
-            } else {
-                if ($type == 'other') {
-
-                    $info['display'] = '';
-                    return $info;
-                }
-            }
+                return array(
+                    'display' => empty($meta_title) ? $post_default_title : $meta_title,
+                    'meta' => $meta_title,
+                    'default' => $post_default_title
+                );
+            default:
+                return array('display' => '');
         }
     }
 
@@ -739,7 +736,7 @@ class WX_Custom_Share
                     }
 
                     get_share_info();
-                }
+                };
 
                 function formatPostData(obj) {
 
@@ -803,9 +800,10 @@ class WX_Custom_Share
                     xhr.send(formatPostData(formData));
                 }
 
+            };
+            if /(micromessenger|qqbrowser)/i.test(navigator.userAgent) {
+                new WX_Custom_Share().init();
             }
-
-            new WX_Custom_Share().init();
         </script>
         <?php
     }
